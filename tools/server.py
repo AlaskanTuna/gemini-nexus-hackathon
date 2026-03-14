@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 from agents.utils.logging import get_logger
 
 # Import tools
+from tools.anime import get_anime_schedule, get_seasonal_anime, search_anime
 from tools.exchange_rate import get_exchange_rate
 from tools.weather import get_weather
 from tools.current_time import get_current_time
@@ -20,6 +21,9 @@ logger = get_logger(__name__)
 mcp = FastMCP('AniKrewe MCP Server')
 
 # Register tools
+mcp.tool()(search_anime)
+mcp.tool()(get_seasonal_anime)
+mcp.tool()(get_anime_schedule)
 mcp.tool()(get_exchange_rate)
 mcp.tool()(get_weather)
 mcp.tool()(get_current_time)
