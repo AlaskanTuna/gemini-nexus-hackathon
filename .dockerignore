@@ -1,0 +1,14 @@
+.git/
+*.pyc
+__pycache__/
+.env
+.env.*
+app/node_modules/
+app/.next/
+docs/
+.claude/
+*.md
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

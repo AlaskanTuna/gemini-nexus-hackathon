@@ -90,6 +90,9 @@ export async function sendMessage(text: string): Promise<AgentResponse> {
   const id = `anikrewe-${Date.now()}`
   const serverUrl = process.env.A2A_SERVER_URL ?? 'http://127.0.0.1:10000'
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 300_000)
+
   const response = await fetch(`${serverUrl}/`, {
     method: 'POST',
     headers: {
@@ -107,8 +110,11 @@ export async function sendMessage(text: string): Promise<AgentResponse> {
       },
       id,
     }),
+    signal: controller.signal,
     cache: 'no-store',
   })
+
+  clearTimeout(timeout)
 
   if (!response.ok) {
     throw new Error(`A2A request failed with ${response.status}`)

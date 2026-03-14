@@ -35,7 +35,7 @@ if __name__ == '__main__':
     logger.info(f'🚀 AniKrewe MCP server starting on port {port}')
     asyncio.run(
         mcp.run_async(
-            transport='http',
+            transport='streamable-http',
             host='0.0.0.0',
             port=port,
         )
