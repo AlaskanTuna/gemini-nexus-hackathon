@@ -27,34 +27,22 @@ flowchart TD
     MCP --> K["Kroki diagram render"]
 ```
 
-## A2A Architecture
-
-```
-Frontend (Next.js, :3000)
-    ↓ A2A JSON-RPC
-A2A Server (ADK agents, :10000)
-    ↓ MCP streamable-http
-MCP Server (FastMCP, :8080)
-```
-
 ## Agent Profiles
 
-| Agent | Responsibility | Tools / Capability |
-| ----- | -------------- | ------------------ |
-| Router Agent | Classifies the request, delegates to specialists, and asks clarifying questions when the request is ambiguous | `AgentTool` delegation over A2A |
-| Season Intel | Seasonal anime discovery, airing lookup, and schedule filtering | Jikan v4 anime tools |
-| Event Planner | Group watch coordination, timezone handling, and weather-aware meetup planning | Time and weather tools |
-| Budget Tracker | Currency conversion, cost splitting, and crypto spot checks | FX and crypto tools |
-| Safety Guardian | Blocks off-scope or unsafe inputs and outputs before they reach the user | Model Armor plus Gemini judge |
-
-**Safety:** Dual-layer guardrails via GCP Model Armor + LLM-as-a-Judge plugin.
+| Agent           | Responsibility                                                                                                | Tools / Capability              |
+| --------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Router Agent    | Classifies the request, delegates to specialists, and asks clarifying questions when the request is ambiguous | `AgentTool` delegation over A2A |
+| Season Intel    | Seasonal anime discovery, airing lookup, and schedule filtering                                               | Jikan v4 anime tools            |
+| Event Planner   | Group watch coordination, timezone handling, and weather-aware meetup planning                                | Time and weather tools          |
+| Budget Tracker  | Currency conversion, cost splitting, and crypto spot checks                                                   | FX and crypto tools             |
+| Safety Guardian | Blocks off-scope or unsafe inputs and outputs before they reach the user                                      | Model Armor plus Gemini judge   |
 
 ## Judging Alignment
 
 - **Agentic Agency and Recovery (40%)**: the router delegates work to specialists, specialists have domain-scoped tool access, and the UI surfaces thinking traces so recovery is visible during the demo.
 - **Technical Depth (30%)**: the stack combines Google ADK, A2A transport, FastMCP, streamable HTTP MCP, and live external APIs in one end-to-end swarm.
 - **System Robustness (20%)**: guardrails run before and after model calls, external requests use structured error payloads, and the frontend proxy supports long-running multi-hop requests.
-- **Docs and Demo (10%)**: this README now includes the functional flow, agent profiles, deployment URLs, and setup steps judges need to evaluate the project quickly.
+- **Docs and Demo (10%)**: this README includes the functional flow, agent profiles, deployment URLs, and setup steps judges need to evaluate the project quickly.
 
 ## Tech Stack
 
@@ -69,11 +57,28 @@ MCP Server (FastMCP, :8080)
 | Deployment      | Google Cloud Run                        |
 | Package Manager | uv (Python), pnpm (frontend)            |
 
-## Local Development
+## Repository Structure
 
-You need three terminals running simultaneously.
+- `agents/` — ADK swarm logic, prompts, safety plugins, and tests
+- `tools/` — FastMCP tool server and integration tests
+- `app/` — Next.js frontend and A2A proxy
+- `deploy/` — Dockerfiles and Cloud Build configs
+- `requirements.txt` — Python dependency manifest for submission review
 
-**Prerequisites:** Python 3.12+, [uv](https://docs.astral.sh/uv/), Node.js 20+, [pnpm](https://pnpm.io/), a `.env` file (copy from `.env.example`).
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.12+, [uv](https://docs.astral.sh/uv/)
+- Node.js 20+, [pnpm](https://pnpm.io/)
+- [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) (for deployment)
+- A `.env` file at the project root (copy from `.env.example` and fill in your GCP project ID)
+
+### Run Locally
+
+Open three terminals and run one command in each:
 
 ```bash
 # Terminal 1 — MCP Server (port 8080)
@@ -87,13 +92,15 @@ uv run python agents/root_agent/agent.py
 cd app && pnpm install && pnpm dev
 ```
 
-Open `http://localhost:3000` and start chatting.
+Then open http://localhost:3000.
 
-## Deployment (Google Cloud Run)
+---
 
-All services are deployed to `us-central1` in the `gemini-nexus-hackathon` GCP project.
+## Deployment
 
-### Deployed URLs
+All three services run on **Google Cloud Run** in `us-central1`. Cloud Run scales to zero so there is no cost when idle — you only pay for Vertex AI inference when someone sends a message.
+
+### Live URLs
 
 | Service    | URL                                                      |
 | ---------- | -------------------------------------------------------- |
@@ -101,20 +108,35 @@ All services are deployed to `us-central1` in the `gemini-nexus-hackathon` GCP p
 | A2A Agents | https://anikrewe-agents-438706399773.us-central1.run.app |
 | MCP Server | https://anikrewe-tools-bjqqkq5rpa-uc.a.run.app           |
 
-### Full Deploy (all 3 services)
+### How Deployment Works
 
-Run from the **project root** (`gemini-nexus-hackathon/`).
+Every deploy is two steps: **build** the Docker image, then **deploy** it to Cloud Run.
 
-#### Step 1 — Build Docker images
+```
+code change  →  gcloud builds submit (build image)  →  gcloud run deploy (push to Cloud Run)
+```
+
+The three services must be deployed in order because each one depends on the URL of the previous:
+
+```
+MCP Server (no dependencies)  →  A2A Agents (needs MCP URL)  →  Frontend (needs A2A URL)
+```
+
+Once deployed, env vars are saved — you only need to pass them on the first deploy.
+
+### Deploy Everything From Scratch
+
+Run all commands from the project root.
+
+**1. Build all three images** (you can run these in separate terminals to speed it up):
 
 ```bash
-# Build all 3 images (can run in parallel)
 gcloud builds submit --config deploy/cloudbuild-tools.yaml --region us-central1
 gcloud builds submit --config deploy/cloudbuild-agents.yaml --region us-central1
 gcloud builds submit --config deploy/cloudbuild-app.yaml --region us-central1
 ```
 
-#### Step 2 — Deploy MCP Server (first, other services depend on its URL)
+**2. Deploy the MCP Server:**
 
 ```bash
 gcloud run deploy anikrewe-tools \
@@ -124,11 +146,9 @@ gcloud run deploy anikrewe-tools \
   --set-env-vars "GOOGLE_CLOUD_PROJECT=gemini-nexus-hackathon"
 ```
 
-Note the **Service URL** from the output — you'll need it for the next step.
+Copy the **Service URL** printed at the end (e.g. `https://anikrewe-tools-xxx.run.app`).
 
-#### Step 3 — Deploy A2A Agents
-
-Replace `<TOOLS_URL>` with the MCP server URL from Step 2.
+**3. Deploy the A2A Agents** — paste the MCP URL where it says `<TOOLS_URL>`:
 
 ```bash
 gcloud run deploy anikrewe-agents \
@@ -137,14 +157,21 @@ gcloud run deploy anikrewe-agents \
   --allow-unauthenticated \
   --memory 1Gi \
   --timeout 300 \
-  --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=gemini-nexus-hackathon,GOOGLE_CLOUD_LOCATION=asia-southeast1,MCP_SERVER_URL=<TOOLS_URL>/mcp,A2A_PORT=10000,ADK_INCLUDE_THOUGHTS=true,ENABLE_MODEL_ARMOR=true,MODEL_ARMOR_TEMPLATE_ID=anikrewe-safety,MODEL_ARMOR_LOCATION=us-central1"
+  --set-env-vars "\
+GOOGLE_GENAI_USE_VERTEXAI=TRUE,\
+GOOGLE_CLOUD_PROJECT=gemini-nexus-hackathon,\
+GOOGLE_CLOUD_LOCATION=asia-southeast1,\
+MCP_SERVER_URL=<TOOLS_URL>/mcp,\
+A2A_PORT=10000,\
+ADK_INCLUDE_THOUGHTS=true,\
+ENABLE_MODEL_ARMOR=true,\
+MODEL_ARMOR_TEMPLATE_ID=anikrewe-safety,\
+MODEL_ARMOR_LOCATION=us-central1"
 ```
 
-Note the **Service URL** from the output.
+Copy the **Service URL** printed at the end.
 
-#### Step 4 — Deploy Frontend
-
-Replace `<AGENTS_URL>` with the A2A agents URL from Step 3.
+**4. Deploy the Frontend** — paste the A2A URL where it says `<AGENTS_URL>`:
 
 ```bash
 gcloud run deploy anikrewe-app \
@@ -154,48 +181,44 @@ gcloud run deploy anikrewe-app \
   --set-env-vars "A2A_SERVER_URL=<AGENTS_URL>"
 ```
 
-### Redeploy Frontend Only (after UI changes)
+### Redeploy After Code Changes
 
-This is the most common case — when someone updates the frontend code and you just need to push the new version.
+After the first deploy, you only need to rebuild and redeploy the service you changed. Env vars carry over automatically.
+
+**Frontend only** (most common — after UI changes in `app/`):
 
 ```bash
-# 1. Rebuild the frontend image
 gcloud builds submit --config deploy/cloudbuild-app.yaml --region us-central1
-
-# 2. Redeploy (uses existing env vars)
 gcloud run deploy anikrewe-app \
   --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-app \
   --region us-central1
 ```
 
-### Redeploy Agents Only (after agent logic changes)
+**Agents only** (after changes in `agents/`):
 
 ```bash
-# 1. Rebuild the agents image
 gcloud builds submit --config deploy/cloudbuild-agents.yaml --region us-central1
-
-# 2. Redeploy (uses existing env vars)
 gcloud run deploy anikrewe-agents \
   --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-agents \
   --region us-central1
 ```
 
-### Health Checks
+**MCP tools only** (after changes in `tools/`):
 
 ```bash
-# Check if services are running
-gcloud run services list --region us-central1 --filter "anikrewe"
-
-# Check MCP server
-curl -s https://anikrewe-tools-bjqqkq5rpa-uc.a.run.app/mcp | head -c 200
-
-# Check A2A agents
-curl -s https://anikrewe-agents-438706399773.us-central1.run.app/.well-known/agent.json
+gcloud builds submit --config deploy/cloudbuild-tools.yaml --region us-central1
+gcloud run deploy anikrewe-tools \
+  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-tools \
+  --region us-central1
 ```
 
-### Cleanup (delete all services)
+### Verify Services Are Running
 
-Only run this if you want to completely tear down the deployment.
+```bash
+gcloud run services list --region us-central1 --filter "anikrewe"
+```
+
+### Tear Down (delete everything)
 
 ```bash
 gcloud run services delete anikrewe-app --region us-central1 --quiet
@@ -203,23 +226,8 @@ gcloud run services delete anikrewe-agents --region us-central1 --quiet
 gcloud run services delete anikrewe-tools --region us-central1 --quiet
 ```
 
-## Cost
-
-Cloud Run **scales to zero** — you pay nothing when no one is using it. The main cost driver is **Vertex AI inference** when someone sends a chat message (~$0.001–0.01 per query). It's safe to leave services running for weeks during judging.
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill in your GCP project ID. See the file for all available options.
-
-## Repository Structure
-
-This submission includes the required top-level folders and manifest expected by the hackathon:
-
-- `agents/` — ADK swarm logic, prompts, safety plugins, and tests
-- `tools/` — FastMCP tool server and integration tests
-- `app/` — Next.js frontend and A2A proxy
-- `requirements.txt` — Python dependency manifest for submission review
+---
 
 ## License
 
-Hackathon project — Gemini Nexus 2026.
+© Hee Zi Jie — AniKrewe — Gemini Nexus 2026
