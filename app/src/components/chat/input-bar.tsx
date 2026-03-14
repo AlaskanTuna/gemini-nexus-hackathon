@@ -1,9 +1,8 @@
 'use client'
 
-import { LoaderCircle, SendHorizonal } from 'lucide-react'
+import { LoaderCircle, Send } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type InputBarProps = {
@@ -25,40 +24,39 @@ export function InputBar({ disabled = false, onSendMessage }: InputBarProps) {
   }
 
   return (
-    <div className="glass rounded-[28px] border border-white/45 p-3 shadow-[0_16px_48px_rgba(15,23,42,0.08)] dark:border-white/10">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end">
-        <label className="flex-1">
-          <span className="sr-only">Message AniKrewe</span>
-          <textarea
-            value={message}
-            disabled={disabled}
-            rows={3}
-            placeholder="Ask about airing anime, meetup timing, weather, or budget conversions..."
-            className={cn(
-              'min-h-[88px] w-full resize-none rounded-[22px] border border-transparent bg-white/55 px-4 py-3 text-sm leading-6 text-[rgb(var(--text-primary))] outline-none transition placeholder:text-[rgb(var(--text-muted))] focus:border-white/70 dark:bg-slate-950/35',
-              disabled && 'cursor-not-allowed opacity-70'
-            )}
-            onChange={(event) => setMessage(event.target.value)}
-            onKeyDown={async (event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault()
-                await submitMessage()
-              }
-            }}
-          />
-        </label>
+    <div className="flex items-end gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-input)] p-3 transition-all focus-within:border-[var(--neon-secondary)]/50 focus-within:shadow-[0_0_12px_rgba(0,240,255,0.15)]">
+      <label className="flex-1">
+        <span className="sr-only">Command sequence</span>
+        <textarea
+          value={message}
+          disabled={disabled}
+          rows={1}
+          placeholder="Command sequence..."
+          className={cn(
+            'w-full resize-none bg-transparent px-2 py-1.5 text-sm leading-6 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] placeholder:italic',
+            disabled && 'cursor-not-allowed opacity-70'
+          )}
+          onChange={(event) => setMessage(event.target.value)}
+          onKeyDown={async (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault()
+              await submitMessage()
+            }
+          }}
+        />
+      </label>
 
-        <Button
-          type="button"
-          size="lg"
-          className="accent-gradient h-12 rounded-full px-5 text-white shadow-[0_18px_38px_rgba(147,51,234,0.25)] hover:opacity-90"
-          disabled={disabled || !message.trim()}
-          onClick={submitMessage}
-        >
-          {disabled ? <LoaderCircle className="size-4 animate-spin" /> : <SendHorizonal className="size-4" />}
-          {disabled ? 'Sending' : 'Send'}
-        </Button>
-      </div>
+      <button
+        type="button"
+        className={cn(
+          'flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[var(--neon-secondary)] text-[var(--bg-base)] transition-all hover:shadow-[0_0_16px_rgba(0,240,255,0.4)]',
+          (disabled || !message.trim()) && 'cursor-not-allowed opacity-40'
+        )}
+        disabled={disabled || !message.trim()}
+        onClick={submitMessage}
+      >
+        {disabled ? <LoaderCircle className="size-4 animate-spin" /> : <Send className="size-4" />}
+      </button>
     </div>
   )
 }

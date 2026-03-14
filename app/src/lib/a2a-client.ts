@@ -46,43 +46,43 @@ export const agentDirectory: Record<
   {
     accentColor: string
     description: string
-    emoji: string
+    icon: string
+    id: string
     key: AgentKey
     name: string
-    softBackground: string
   }
 > = {
   router_agent: {
     key: 'router_agent',
     name: 'AniKrewe Router',
     description: 'Clarifies the goal and delegates to the right specialist',
-    emoji: '🧭',
+    icon: 'radar',
+    id: 'AGT-000 // ROUTER',
     accentColor: '#6366f1',
-    softBackground: 'rgba(99, 102, 241, 0.18)',
   },
   season_intel_agent: {
     key: 'season_intel_agent',
     name: 'Season Intel',
     description: 'Tracks seasonal lineups, airing days, and anime discovery',
-    emoji: '🌸',
-    accentColor: '#9333ea',
-    softBackground: 'rgba(147, 51, 234, 0.18)',
+    icon: 'sparkles',
+    id: 'AGT-001 // SCRAPER',
+    accentColor: '#a855f7',
   },
   event_planner_agent: {
     key: 'event_planner_agent',
     name: 'Event Planner',
     description: 'Coordinates meetup timing, weather, and event readiness',
-    emoji: '🗓️',
-    accentColor: '#0891b2',
-    softBackground: 'rgba(8, 145, 178, 0.18)',
+    icon: 'calendar',
+    id: 'AGT-002 // LOGISTICS',
+    accentColor: '#22d3ee',
   },
   budget_tracker_agent: {
     key: 'budget_tracker_agent',
     name: 'Budget Tracker',
     description: 'Handles cost checks, exchange rates, and crypto spot prices',
-    emoji: '💸',
-    accentColor: '#ec4899',
-    softBackground: 'rgba(236, 72, 153, 0.18)',
+    icon: 'wallet',
+    id: 'AGT-003 // FINANCE',
+    accentColor: '#f472b6',
   },
 }
 

@@ -5,7 +5,6 @@ import { useEffect, useEffectEvent, useRef } from 'react'
 import { InputBar } from '@/components/chat/input-bar'
 import { MessageBubble } from '@/components/chat/message-bubble'
 import { ThinkingLog } from '@/components/chat/thinking-log'
-import { GlassCard } from '@/components/layout/glass-card'
 import type { ChatMessage } from '@/lib/a2a-client'
 
 type ChatPanelProps = {
@@ -26,33 +25,30 @@ export function ChatPanel({ isLoading, messages, onSendMessage }: ChatPanelProps
   }, [messages.length, isLoading])
 
   return (
-    <GlassCard className="flex h-full min-h-[72vh] flex-col gap-4 p-4 md:p-5">
-      <div className="space-y-1 px-1">
-        <p className="text-xs font-semibold tracking-[0.22em] text-[rgb(var(--text-muted))] uppercase">Live Swarm Chat</p>
-        <h2 className="text-xl font-semibold text-[rgb(var(--text-primary))]">Plan, route, and verify in one place</h2>
-      </div>
+    <div className="surface flex h-full min-h-[72vh] flex-col gap-3 rounded-2xl p-4">
+      <div className="scrollbar-thin flex-1 space-y-4 overflow-y-auto px-2 py-3">
+        {messages.map((message, index) => (
+          <div key={message.id}>
+            <MessageBubble message={message} />
+            {message.role === 'assistant' ? (
+              <ThinkingLog entries={message.thinking ?? []} defaultOpen={index === 1} />
+            ) : null}
+          </div>
+        ))}
 
-      <div className="glass flex-1 overflow-hidden rounded-[30px] border border-white/40 bg-white/45 dark:border-white/10 dark:bg-slate-950/30">
-        <div className="scrollbar-thin h-full max-h-[58vh] space-y-5 overflow-y-auto px-4 py-5 md:px-6">
-          {messages.map((message) => (
-            <div key={message.id}>
-              <MessageBubble message={message} />
-              {message.role === 'assistant' ? <ThinkingLog entries={message.thinking ?? []} /> : null}
+        {isLoading ? (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1 rounded-xl surface px-4 py-3">
+              <span className="size-1.5 rounded-full bg-[var(--neon-primary)]" style={{ animation: 'typing-dot 1.4s ease-in-out infinite 0ms' }} />
+              <span className="size-1.5 rounded-full bg-[var(--neon-primary)]" style={{ animation: 'typing-dot 1.4s ease-in-out infinite 150ms' }} />
+              <span className="size-1.5 rounded-full bg-[var(--neon-primary)]" style={{ animation: 'typing-dot 1.4s ease-in-out infinite 300ms' }} />
             </div>
-          ))}
-
-          {isLoading ? (
-            <div className="flex justify-start">
-              <div className="glass rounded-[24px] rounded-bl-md px-4 py-3 text-sm text-[rgb(var(--text-secondary))]">
-                AniKrewe is coordinating the request...
-              </div>
-            </div>
-          ) : null}
-          <div ref={bottomRef} />
-        </div>
+          </div>
+        ) : null}
+        <div ref={bottomRef} />
       </div>
 
       <InputBar disabled={isLoading} onSendMessage={onSendMessage} />
-    </GlassCard>
+    </div>
   )
 }

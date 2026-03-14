@@ -12,26 +12,33 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
   return (
-    <article className={cn('flex w-full', isUser ? 'justify-end' : 'justify-start')}>
-      <div className={cn('max-w-[85%] space-y-2 md:max-w-[72%]', isUser ? 'items-end' : 'items-start')}>
+    <article
+      className={cn('flex w-full', isUser ? 'justify-end' : 'justify-start')}
+      style={{ animation: 'message-in 200ms ease-out' }}
+    >
+      <div className={cn('max-w-[85%] space-y-1 md:max-w-[75%]', isUser ? 'items-end' : 'items-start')}>
         {!isUser && message.agentKey ? <AgentAvatar agentKey={message.agentKey} /> : null}
 
         <div
           className={cn(
-            'rounded-[28px] px-5 py-4 text-sm leading-7 shadow-[0_20px_48px_rgba(15,23,42,0.08)]',
+            'rounded-xl px-4 py-3 text-sm leading-7',
             isUser
-              ? 'accent-gradient rounded-br-md text-white'
-              : 'glass rounded-bl-md border border-white/45 text-[rgb(var(--text-primary))] dark:border-white/10'
+              ? 'surface-solid rounded-br-sm text-[var(--text-primary)]'
+              : 'surface rounded-bl-sm text-[var(--text-primary)]'
           )}
         >
           {isUser ? (
             <p className="whitespace-pre-wrap break-words">{message.text}</p>
           ) : (
-            <div className="prose prose-sm max-w-none break-words text-current prose-headings:text-current prose-p:text-current prose-strong:text-current prose-code:text-current prose-pre:bg-black/70 prose-pre:text-white">
+            <div className="prose prose-sm prose-invert max-w-none break-words prose-headings:text-[var(--text-primary)] prose-p:text-[var(--text-primary)] prose-strong:text-[var(--text-primary)] prose-code:text-[var(--neon-secondary)] prose-pre:bg-black/50 prose-pre:text-[var(--text-secondary)]">
               <ReactMarkdown>{message.text}</ReactMarkdown>
             </div>
           )}
         </div>
+
+        {isUser ? (
+          <p className="mt-1 text-right text-[11px] text-[var(--text-muted)]">Commander</p>
+        ) : null}
       </div>
     </article>
   )

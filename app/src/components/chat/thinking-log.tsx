@@ -1,27 +1,42 @@
+'use client'
+
+import { useState } from 'react'
+
 type ThinkingLogProps = {
   entries: string[]
+  defaultOpen?: boolean
 }
 
-export function ThinkingLog({ entries }: ThinkingLogProps) {
+export function ThinkingLog({ entries, defaultOpen = false }: ThinkingLogProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+
   if (!entries.length) {
     return null
   }
 
   return (
-    <details className="group mt-3 overflow-hidden rounded-3xl border border-fuchsia-400/20 bg-fuchsia-400/8 text-sm shadow-sm">
-      <summary className="cursor-pointer list-none px-4 py-3 text-xs font-semibold tracking-[0.22em] text-fuchsia-900 uppercase marker:hidden dark:text-fuchsia-100">
-        <span className="flex items-center justify-between gap-3">
-          <span>Thinking...</span>
-          <span className="text-[10px] text-fuchsia-700/80 transition-transform group-open:rotate-180 dark:text-fuchsia-200/70">
-            Expand
-          </span>
+    <div className="mt-2 ml-3">
+      <button
+        type="button"
+        className="flex cursor-pointer items-center gap-2 font-mono text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--neon-primary)]"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span
+          className="inline-block transition-transform duration-200"
+          style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+        >
+          ▸
         </span>
-      </summary>
-      <div className="border-t border-fuchsia-400/20 bg-white/45 px-4 py-3 dark:bg-slate-950/25">
-        <pre className="overflow-x-auto whitespace-pre-wrap break-words border-l-2 border-fuchsia-400/45 pl-3 font-mono text-xs leading-6 text-[rgb(var(--text-secondary))]">
-          {entries.join('\n\n')}
-        </pre>
-      </div>
-    </details>
+        <span>View Thinking Trace</span>
+      </button>
+
+      {isOpen ? (
+        <div className="mt-2 overflow-hidden rounded-lg border-l-2 border-[var(--neon-primary)]/40 bg-[var(--neon-primary)]/5 px-3 py-2">
+          <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-6 text-[var(--text-secondary)]">
+            {entries.join('\n\n')}
+          </pre>
+        </div>
+      ) : null}
+    </div>
   )
 }

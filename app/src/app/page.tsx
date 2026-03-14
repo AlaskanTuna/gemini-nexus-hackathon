@@ -13,7 +13,7 @@ const starterMessages: ChatMessage[] = [
     id: 'welcome',
     role: 'assistant',
     text:
-      'Ask about **seasonal anime**, **watch-party timing**, or **budget conversions** and AniKrewe will route it to the right specialist.',
+      'AniKrewe operational. Ask about **seasonal anime**, **watch-party timing**, or **budget conversions** and the swarm will route it to the right specialist.',
     agentKey: 'router_agent',
     agentName: 'AniKrewe Router',
     thinking: [],
@@ -94,17 +94,18 @@ export default function Home() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-5 px-4 py-5 md:px-6 lg:px-8">
-      <Header status={connectionStatus} />
+    <div className="grid h-screen grid-cols-1 grid-rows-[56px_1fr] gap-3 p-3 lg:grid-cols-[260px_1fr]">
+      <div className="col-span-full">
+        <Header status={connectionStatus} />
+      </div>
 
-      <main className="grid flex-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="order-2 lg:order-1">
-          <Sidebar activeAgent={activeAgent} />
-        </aside>
-        <section className="order-1 min-h-[70vh] lg:order-2">
-          <ChatPanel isLoading={isLoading} messages={messages} onSendMessage={handleSendMessage} />
-        </section>
-      </main>
+      <aside className="hidden lg:block">
+        <Sidebar activeAgent={activeAgent} />
+      </aside>
+
+      <section className="min-h-0">
+        <ChatPanel isLoading={isLoading} messages={messages} onSendMessage={handleSendMessage} />
+      </section>
     </div>
   )
 }
