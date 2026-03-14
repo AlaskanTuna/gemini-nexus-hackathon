@@ -1,10 +1,33 @@
 # AniKrewe
 
-An anime community operations hub for Malaysian Discord communities — built for **Track C (Process Automation Swarm)** of the Gemini Nexus 2026 hackathon.
+An anime community operations hub for Malaysian Discord communities — built for **Track C - Operations Hub (Process Automation Swarm)** of the Gemini Nexus 2026 hackathon.
 
 AniKrewe automates scheduling, budgeting, and event planning using an AI agent swarm powered by Google ADK, Gemini 2.5 Flash, and the A2A protocol.
 
-## Architecture
+## Functional Diagram
+
+```mermaid
+flowchart TD
+    U["Discord Community Leader"] --> F["AniKrewe Web App<br/>Next.js chat UI"]
+    F --> P["/api/chat proxy"]
+    P --> A["Router Agent<br/>Google ADK + A2A"]
+    A --> SI["Season Intel Agent"]
+    A --> EP["Event Planner Agent"]
+    A --> BT["Budget Tracker Agent"]
+    A -. safety gate .-> SG["Safety Guardian<br/>Model Armor + LLM Judge"]
+    SG -. validates .-> A
+    SI --> MCP["AniKrewe MCP Server<br/>FastMCP streamable-http"]
+    EP --> MCP
+    BT --> MCP
+    MCP --> J["Jikan v4"]
+    MCP --> W["Open-Meteo"]
+    MCP --> T["zoneinfo"]
+    MCP --> X["Frankfurter FX"]
+    MCP --> C["Coinbase spot price"]
+    MCP --> K["Kroki diagram render"]
+```
+
+## A2A Architecture
 
 ```
 Frontend (Next.js, :3000)
@@ -14,28 +37,37 @@ A2A Server (ADK agents, :10000)
 MCP Server (FastMCP, :8080)
 ```
 
-**Root Agent** delegates to specialist subagents:
+## Agent Profiles
 
-| Subagent | Role |
-|----------|------|
-| Season Intel | Anime discovery + schedule lookups (Jikan v4) |
-| Event Planner | Group watch scheduling + weather-aware meetups |
-| Budget Tracker | Currency conversion + crypto + cost splitting |
+| Agent | Responsibility | Tools / Capability |
+| ----- | -------------- | ------------------ |
+| Router Agent | Classifies the request, delegates to specialists, and asks clarifying questions when the request is ambiguous | `AgentTool` delegation over A2A |
+| Season Intel | Seasonal anime discovery, airing lookup, and schedule filtering | Jikan v4 anime tools |
+| Event Planner | Group watch coordination, timezone handling, and weather-aware meetup planning | Time and weather tools |
+| Budget Tracker | Currency conversion, cost splitting, and crypto spot checks | FX and crypto tools |
+| Safety Guardian | Blocks off-scope or unsafe inputs and outputs before they reach the user | Model Armor plus Gemini judge |
 
 **Safety:** Dual-layer guardrails via GCP Model Armor + LLM-as-a-Judge plugin.
 
+## Judging Alignment
+
+- **Agentic Agency and Recovery (40%)**: the router delegates work to specialists, specialists have domain-scoped tool access, and the UI surfaces thinking traces so recovery is visible during the demo.
+- **Technical Depth (30%)**: the stack combines Google ADK, A2A transport, FastMCP, streamable HTTP MCP, and live external APIs in one end-to-end swarm.
+- **System Robustness (20%)**: guardrails run before and after model calls, external requests use structured error payloads, and the frontend proxy supports long-running multi-hop requests.
+- **Docs and Demo (10%)**: this README now includes the functional flow, agent profiles, deployment URLs, and setup steps judges need to evaluate the project quickly.
+
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Agent Framework | Google ADK 1.13.0 |
-| MCP Server | FastMCP 2.11.3 |
-| A2A Protocol | a2a-sdk 0.3.3 |
-| LLM | Gemini 2.5 Flash (Vertex AI) |
-| Guardrails | GCP Model Armor + LLM-as-a-Judge |
-| Frontend | Next.js 15 + Tailwind CSS 4 + shadcn/ui |
-| Deployment | Google Cloud Run |
-| Package Manager | uv (Python), pnpm (frontend) |
+| Layer           | Technology                              |
+| --------------- | --------------------------------------- |
+| Agent Framework | Google ADK 1.13.0                       |
+| MCP Server      | FastMCP 2.11.3                          |
+| A2A Protocol    | a2a-sdk 0.3.3                           |
+| LLM             | Gemini 2.5 Flash (Vertex AI)            |
+| Guardrails      | GCP Model Armor + LLM-as-a-Judge        |
+| Frontend        | Next.js 15 + Tailwind CSS 4 + shadcn/ui |
+| Deployment      | Google Cloud Run                        |
+| Package Manager | uv (Python), pnpm (frontend)            |
 
 ## Local Development
 
@@ -63,11 +95,11 @@ All services are deployed to `us-central1` in the `gemini-nexus-hackathon` GCP p
 
 ### Deployed URLs
 
-| Service | URL |
-|---------|-----|
-| Frontend | https://anikrewe-app-438706399773.us-central1.run.app |
+| Service    | URL                                                      |
+| ---------- | -------------------------------------------------------- |
+| Frontend   | https://anikrewe-app-438706399773.us-central1.run.app    |
 | A2A Agents | https://anikrewe-agents-438706399773.us-central1.run.app |
-| MCP Server | https://anikrewe-tools-bjqqkq5rpa-uc.a.run.app |
+| MCP Server | https://anikrewe-tools-bjqqkq5rpa-uc.a.run.app           |
 
 ### Full Deploy (all 3 services)
 
@@ -119,7 +151,7 @@ gcloud run deploy anikrewe-app \
   --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-app \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars "A2A_BASE_URL=<AGENTS_URL>"
+  --set-env-vars "A2A_SERVER_URL=<AGENTS_URL>"
 ```
 
 ### Redeploy Frontend Only (after UI changes)
@@ -178,6 +210,15 @@ Cloud Run **scales to zero** — you pay nothing when no one is using it. The ma
 ## Environment Variables
 
 Copy `.env.example` to `.env` and fill in your GCP project ID. See the file for all available options.
+
+## Repository Structure
+
+This submission includes the required top-level folders and manifest expected by the hackathon:
+
+- `agents/` — ADK swarm logic, prompts, safety plugins, and tests
+- `tools/` — FastMCP tool server and integration tests
+- `app/` — Next.js frontend and A2A proxy
+- `requirements.txt` — Python dependency manifest for submission review
 
 ## License
 
