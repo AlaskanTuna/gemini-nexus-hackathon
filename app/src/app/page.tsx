@@ -94,18 +94,19 @@ export default function Home() {
   }
 
   return (
-    <div className="grid h-screen grid-cols-1 grid-rows-[56px_1fr] gap-3 p-3 lg:grid-cols-[260px_1fr]">
-      <div className="col-span-full">
+    <div className="flex h-screen flex-col">
+      <div className="shrink-0 border-b border-[var(--border-subtle)]">
         <Header status={connectionStatus} />
       </div>
 
-      <aside className="hidden lg:block">
-        <Sidebar activeAgent={activeAgent} />
-      </aside>
-
-      <section className="min-h-0">
-        <ChatPanel isLoading={isLoading} messages={messages} onSendMessage={handleSendMessage} />
-      </section>
+      <main className="flex min-h-0 flex-1">
+        <aside className="hidden shrink-0 border-r border-[var(--border-subtle)] lg:block">
+          <Sidebar activeAgent={activeAgent} />
+        </aside>
+        <section className="min-h-0 min-w-0 flex-1">
+          <ChatPanel activeAgent={activeAgent} isLoading={isLoading} messages={messages} onSendMessage={handleSendMessage} />
+        </section>
+      </main>
     </div>
   )
 }

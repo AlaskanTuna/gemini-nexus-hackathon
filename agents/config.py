@@ -27,7 +27,7 @@ MODEL_ARMOR_LOCATION = os.getenv('MODEL_ARMOR_LOCATION', 'asia-southeast1')
 MODEL_ARMOR_TEMPLATE_ID = os.getenv('MODEL_ARMOR_TEMPLATE_ID', 'anikrewe-safety')
 
 # AGENTS CONFIG
-engine_config_path = os.path.join(os.path.dirname(__file__), 'agents.toml')
+engine_config_path = os.path.join(os.path.dirname(__file__), '..', 'agents.toml')
 try:
     import tomllib
 except ModuleNotFoundError:

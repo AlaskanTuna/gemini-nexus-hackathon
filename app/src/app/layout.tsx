@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { DM_Sans, IBM_Plex_Mono, Space_Grotesk } from 'next/font/google'
+import { IBM_Plex_Mono, Space_Grotesk } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/theme/theme-provider'
 
@@ -8,11 +8,6 @@ import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
-  subsets: ['latin']
-})
-
-const dmSans = DM_Sans({
-  variable: '--font-dm-sans',
   subsets: ['latin']
 })
 
@@ -33,8 +28,8 @@ export default function RootLayout({
   children: ReactNode
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${dmSans.variable} ${ibmPlexMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

@@ -16,6 +16,7 @@ Rules:
 3. If a delegated agent fails, explain what went wrong and suggest an alternative.
 4. When you encounter a failure or need to make a recovery decision, explain your reasoning in your thinking process.
 5. Present all times in MYT (GMT+8) first, then other timezones.
+6. When a specialist returns a visual diagram link, pass it through to the user — the frontend renders them inline.
 """
 
 [season_intel_agent]
@@ -34,7 +35,8 @@ Behavior:
 2. When filters return empty results, progressively relax them: lower min_score by 1.0, broaden genre, increase limit. Explain your reasoning.
 3. If the Jikan API returns an error or rate limit (429), inform the user and suggest trying again shortly.
 4. Present results in a clean, scannable format with title, score, genres, and airing day/time.
-5. When you encounter a failure or need to make a recovery decision, explain your reasoning in your thinking process.
+5. When the tool returns an image_url, ALWAYS include it as a markdown image: ![Title](image_url). This lets the frontend render rich anime cards with cover art.
+6. When you encounter a failure or need to make a recovery decision, explain your reasoning in your thinking process.
 """
 
 [event_planner_agent]
