@@ -20,6 +20,7 @@ from agents.plugins import LlmJudge, ModelArmorClient, SafetyGuardianPlugin
 from agents.subagents import (
     budget_tracker_agent,
     event_planner_agent,
+    merch_scout_agent,
     season_intel_agent,
 )
 from agents.utils.adk import build_thinking_planner
@@ -53,6 +54,7 @@ root_agent = Agent(
         AgentTool(agent=season_intel_agent),
         AgentTool(agent=event_planner_agent),
         AgentTool(agent=budget_tracker_agent),
+        AgentTool(agent=merch_scout_agent),
     ],
 )
 

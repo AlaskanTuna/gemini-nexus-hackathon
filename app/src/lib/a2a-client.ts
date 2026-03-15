@@ -1,4 +1,4 @@
-export type AgentKey = 'router_agent' | 'season_intel_agent' | 'event_planner_agent' | 'budget_tracker_agent'
+export type AgentKey = 'router_agent' | 'season_intel_agent' | 'event_planner_agent' | 'budget_tracker_agent' | 'merch_scout_agent'
 export type ConnectionStatus = 'idle' | 'loading' | 'connected' | 'disconnected'
 
 export type ChatMessage = {
@@ -84,6 +84,14 @@ export const agentDirectory: Record<
     id: 'AGT-003 // FINANCE',
     accentColor: '#f472b6',
   },
+  merch_scout_agent: {
+    key: 'merch_scout_agent',
+    name: 'Merch Scout',
+    description: 'Searches for anime merchandise, figures, and collectibles',
+    icon: 'search',
+    id: 'AGT-004 // SCOUT',
+    accentColor: '#f59e0b',
+  },
 }
 
 export async function sendMessage(text: string): Promise<AgentResponse> {
@@ -145,6 +153,10 @@ export function inferAgentFromText(text: string): AgentKey {
     )
   ) {
     return 'event_planner_agent'
+  }
+
+  if (/\b(merch|merchandise|figure|figurine|buy|shop|shopping|store|collectible|poster|artbook)\b/.test(normalized)) {
+    return 'merch_scout_agent'
   }
 
   if (/\b(anime|season|airing|airs|watch|shows|lineup|jikan|spring|summer|fall|winter)\b/.test(normalized)) {
@@ -353,6 +365,9 @@ function normalizeAgentKey(value: unknown): AgentKey | null {
   }
   if (normalized.includes('budget')) {
     return 'budget_tracker_agent'
+  }
+  if (normalized.includes('merch') || normalized.includes('scout')) {
+    return 'merch_scout_agent'
   }
   if (normalized.includes('router') || normalized.includes('root')) {
     return 'router_agent'

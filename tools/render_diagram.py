@@ -26,23 +26,36 @@ def render_diagram(mermaid_code: str):
         import base64
         import zlib
 
-        # Kroki encoding: deflate compress → base64url encode
-        compressed = zlib.compress(mermaid_code.encode("utf-8"), level=9)
+        # Kroki encoding: zlib compress → base64url encode
+        compressed = zlib.compress(mermaid_code.encode("utf-8"), 9)
         encoded = base64.urlsafe_b64encode(compressed).decode("ascii")
         url = f"https://kroki.io/mermaid/svg/{encoded}"
 
-        # Pre-format the markdown link so the LLM just includes it as-is
-        markdown_link = f"[✿ Click here to view your diagram ✿]({url})"
+        # Validate the URL works before returning
+        import urllib.request
+        try:
+            req = urllib.request.Request(url, method="HEAD")
+            resp = urllib.request.urlopen(req, timeout=5)
+            if resp.status != 200:
+                logger.warning(f"⚠️ Kroki returned status {resp.status}, Mermaid syntax may be invalid")
+        except Exception as validation_err:
+            logger.warning(f"⚠️ Kroki validation failed: {validation_err}")
+            return {
+                "error": f"The Mermaid syntax appears invalid. Kroki could not render it. Please fix the syntax and try again. Input was: {mermaid_code[:200]}",
+            }
+
+        # Pre-format as markdown image so the frontend renders inline
+        markdown_image = f"![Diagram]({url})"
 
         result = {
-            "clickable_link": markdown_link,
+            "clickable_link": markdown_image,
             "instruction": (
                 "IMPORTANT: Copy the 'clickable_link' value EXACTLY as-is into your "
                 "response. Do NOT modify it, do NOT type the URL separately, and do NOT "
                 "attempt to reproduce the URL on its own. Just paste the clickable_link."
             ),
         }
-        logger.info(f"✅ Diagram URL generated ({len(encoded)} chars encoded)")
+        logger.info(f"✅ Diagram URL generated and validated ({len(encoded)} chars encoded)")
         return result
     except Exception as e:
         logger.error(f"❌ Failed to encode diagram: {e}")

@@ -7,6 +7,7 @@ SEASON_INTEL_TOOL_FILTER = [
 EVENT_PLANNER_TOOL_FILTER = [
     'get_current_time',
     'get_weather',
+    'render_diagram',
 ]
 
 BUDGET_TRACKER_TOOL_FILTER = [

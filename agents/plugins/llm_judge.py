@@ -17,7 +17,8 @@ logger = get_logger(__name__)
 ANIKREWE_SCOPE = (
     'AniKrewe only supports anime community operations tasks: anime discovery, airing intel, '
     'season planning, meetup scheduling, weather-aware event planning, time coordination, '
-    'currency conversion, crypto price checks, and budget calculations.'
+    'currency conversion, crypto price checks, budget calculations, visual diagrams/flowcharts, '
+    'and anime merchandise search/shopping.'
 )
 
 
@@ -94,6 +95,8 @@ ALLOW these — they are IN SCOPE even if they mention unfamiliar names:
 - anime titles, genres, seasons, airing schedules
 - group watch scheduling, meetup planning, weather queries
 - budget calculations, cost splitting, group buy planning
+- requests for diagrams, flowcharts, visual charts, or planning visualizations
+- anime merchandise search, shopping, where to buy anime goods, figure prices
 
 BLOCK only if ALL of the following are true:
 - the request is clearly unrelated to anime community operations
