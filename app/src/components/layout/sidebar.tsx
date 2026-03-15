@@ -1,10 +1,12 @@
 'use client'
 
-import { Calendar, ChevronLeft, ChevronRight, Radar, Sparkles, Wallet } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, Radar, Search, Sparkles, Wallet } from 'lucide-react'
 import { useState } from 'react'
 
+import { ChatHistory } from '@/components/chat/chat-history'
 import type { AgentKey } from '@/lib/a2a-client'
 import { agentDirectory } from '@/lib/a2a-client'
+import type { ChatSession } from '@/lib/chat-store'
 import { cn } from '@/lib/utils'
 
 const iconMap: Record<string, typeof Sparkles> = {
@@ -12,6 +14,7 @@ const iconMap: Record<string, typeof Sparkles> = {
   calendar: Calendar,
   wallet: Wallet,
   radar: Radar,
+  search: Search,
 }
 
 const glowMap: Record<AgentKey, string> = {
@@ -19,6 +22,7 @@ const glowMap: Record<AgentKey, string> = {
   season_intel_agent: 'glow-purple',
   event_planner_agent: 'glow-cyan',
   budget_tracker_agent: 'glow-pink',
+  merch_scout_agent: '',
 }
 
 const borderMap: Record<AgentKey, string> = {
@@ -26,11 +30,20 @@ const borderMap: Record<AgentKey, string> = {
   season_intel_agent: 'border-l-[#a855f7]',
   event_planner_agent: 'border-l-[#22d3ee]',
   budget_tracker_agent: 'border-l-[#f472b6]',
+  merch_scout_agent: 'border-l-[#f59e0b]',
 }
 
-export function Sidebar({ activeAgent }: { activeAgent: AgentKey }) {
+type SidebarProps = {
+  activeAgent: AgentKey
+  sessions: ChatSession[]
+  activeSessionId: string
+  onSelectSession: (id: string) => void
+  onDeleteSession: (id: string) => void
+}
+
+export function Sidebar({ activeAgent, sessions, activeSessionId, onSelectSession, onDeleteSession }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
-  const agents: AgentKey[] = ['season_intel_agent', 'event_planner_agent', 'budget_tracker_agent']
+  const agents: AgentKey[] = ['season_intel_agent', 'event_planner_agent', 'budget_tracker_agent', 'merch_scout_agent']
 
   return (
     <div
@@ -47,7 +60,7 @@ export function Sidebar({ activeAgent }: { activeAgent: AgentKey }) {
         {collapsed ? <ChevronRight className="size-3" /> : <ChevronLeft className="size-3" />}
       </button>
 
-      <div className="flex flex-1 flex-col gap-1 p-2">
+      <div className="flex flex-col gap-1 p-2">
         {agents.map((agentKey) => {
           const agent = agentDirectory[agentKey]
           const isActive = activeAgent === agentKey
@@ -97,6 +110,16 @@ export function Sidebar({ activeAgent }: { activeAgent: AgentKey }) {
             </div>
           )
         })}
+      </div>
+
+      <div className="scrollbar-thin flex-1 overflow-y-auto border-t border-[var(--border-subtle)] p-2">
+        <ChatHistory
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          collapsed={collapsed}
+          onSelectSession={onSelectSession}
+          onDeleteSession={onDeleteSession}
+        />
       </div>
 
       <div className="border-t border-[var(--border-subtle)] px-3 py-3">

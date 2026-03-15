@@ -9,6 +9,20 @@ import { cn } from '@/lib/utils'
 const KROKI_PATTERN = /^https:\/\/kroki\.io\//
 
 const markdownComponents: Partial<Components> = {
+  a: ({ href, children, ...rest }) => {
+    if (href && KROKI_PATTERN.test(href)) {
+      return (
+        <figure className="my-3 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3">
+          <img src={href} alt="Diagram" loading="lazy" className="max-w-full" />
+        </figure>
+      )
+    }
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-[var(--neon-primary)] underline" {...rest}>
+        {children}
+      </a>
+    )
+  },
   img: ({ src, alt, ...rest }) => {
     const srcStr = typeof src === 'string' ? src : undefined
     if (isJikanImage(srcStr)) {

@@ -7,6 +7,7 @@ import { MessageBubble } from '@/components/chat/message-bubble'
 import { SuggestionChips } from '@/components/chat/suggestion-chips'
 import { ThinkingLog } from '@/components/chat/thinking-log'
 import { FlickeringGrid } from '@/components/ui/flickering-grid'
+import { MessageLoading } from '@/components/ui/message-loading'
 import type { AgentKey, ChatMessage } from '@/lib/a2a-client'
 
 type ChatPanelProps = {
@@ -54,10 +55,8 @@ export function ChatPanel({ activeAgent, isLoading, messages, onSendMessage }: C
 
         {isLoading ? (
           <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-5 py-4 backdrop-blur-xl">
-              <span className="size-2 rounded-full bg-[var(--neon-primary)]" style={{ animation: 'typing-dot 1.4s ease-in-out infinite 0ms' }} />
-              <span className="size-2 rounded-full bg-[var(--neon-primary)]" style={{ animation: 'typing-dot 1.4s ease-in-out infinite 150ms' }} />
-              <span className="size-2 rounded-full bg-[var(--neon-primary)]" style={{ animation: 'typing-dot 1.4s ease-in-out infinite 300ms' }} />
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 px-5 py-4 backdrop-blur-xl">
+              <MessageLoading />
             </div>
           </div>
         ) : null}
