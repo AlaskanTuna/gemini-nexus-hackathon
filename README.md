@@ -263,6 +263,46 @@ gcloud run deploy anikrewe-app \
   --set-env-vars "A2A_SERVER_URL=<AGENTS_URL>"
 ```
 
+### Redeploy after code changes
+
+If code changed, rebuild the image first and then redeploy the service. For code-only changes, you usually do not need to repeat the env var flags because Cloud Run keeps the existing service configuration.
+
+#### Frontend
+
+```bash
+gcloud builds submit --config deploy/cloudbuild-app.yaml --region us-central1
+
+gcloud run deploy anikrewe-app \
+  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-app \
+  --region us-central1
+```
+
+#### A2A Agents
+
+```bash
+gcloud builds submit --config deploy/cloudbuild-agents.yaml --region us-central1
+
+gcloud run deploy anikrewe-agents \
+  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-agents \
+  --region us-central1
+```
+
+#### MCP Tools
+
+```bash
+gcloud builds submit --config deploy/cloudbuild-tools.yaml --region us-central1
+
+gcloud run deploy anikrewe-tools \
+  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-tools \
+  --region us-central1
+```
+
+Redeploy order for cross-service changes:
+
+1. `anikrewe-tools`
+2. `anikrewe-agents`
+3. `anikrewe-app`
+
 </details>
 
 ## Safety and Scope
