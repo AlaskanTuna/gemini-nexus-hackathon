@@ -18,14 +18,12 @@ const markdownComponents: Partial<Components> = {
       return (
         <figure className="my-3 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3">
           <img src={srcStr} alt={alt || 'Diagram'} loading="lazy" className="max-w-full" {...rest} />
-          {alt ? (
-            <figcaption className="mt-2 text-[11px] text-[var(--text-muted)]">{alt}</figcaption>
-          ) : null}
+          {alt ? <figcaption className="mt-2 text-[11px] text-[var(--text-muted)]">{alt}</figcaption> : null}
         </figure>
       )
     }
     return <img src={srcStr} alt={alt} loading="lazy" className="my-2 max-w-full rounded" {...rest} />
-  },
+  }
 }
 
 type MessageBubbleProps = {
@@ -44,7 +42,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           className={cn(
             'rounded-xl px-5 py-4 text-[14px] leading-relaxed shadow-lg',
             isUser
-              ? 'rounded-br-sm border border-white/[0.06] bg-[var(--bg-surface-solid)]/90 text-[var(--text-primary)] backdrop-blur-xl dark:border-white/[0.06]'
+              ? 'rounded-br-sm border border-white/[0.06] bg-[var(--bg-surface-solid)]/80 text-[var(--text-primary)] backdrop-blur-xl dark:border-white/[0.06]'
               : 'rounded-bl-sm border border-white/[0.1] bg-[var(--bg-surface)]/80 text-[var(--text-primary)] shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-2xl dark:border-white/[0.1]'
           )}
         >
@@ -57,9 +55,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
         </div>
 
-        {isUser ? (
-          <p className="mt-0.5 text-right text-[10px] text-[var(--text-muted)]">Commander</p>
-        ) : null}
+        {isUser ? <p className="mt-0.5 text-right text-[10px] text-[var(--text-muted)]">Commander</p> : null}
       </div>
     </article>
   )
