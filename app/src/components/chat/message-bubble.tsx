@@ -6,15 +6,23 @@ import { AnimeCard, isJikanImage } from '@/components/chat/anime-card'
 import type { ChatMessage } from '@/lib/a2a-client'
 import { cn } from '@/lib/utils'
 
-const KROKI_PATTERN = /^https:\/\/kroki\.io\//
+const DIAGRAM_PATTERN = /^https:\/\/(kroki\.io\/|anikrewe-tools[^/]*\/diagram\/)/
 
 const markdownComponents: Partial<Components> = {
   a: ({ href, children, ...rest }) => {
-    if (href && KROKI_PATTERN.test(href)) {
+    if (href && DIAGRAM_PATTERN.test(href)) {
       return (
-        <figure className="my-3 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3">
-          <img src={href} alt="Diagram" loading="lazy" className="max-w-full" />
-        </figure>
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="my-3 inline-flex items-center gap-2 rounded-lg border border-[var(--neon-primary)]/30 bg-[var(--neon-primary)]/10 px-4 py-2.5 text-[var(--neon-primary)] no-underline transition-colors hover:bg-[var(--neon-primary)]/20"
+          {...rest}
+        >
+          <span>📊</span>
+          <span className="underline">{children}</span>
+          <span className="text-xs opacity-60">↗</span>
+        </a>
       )
     }
     return (
@@ -28,7 +36,7 @@ const markdownComponents: Partial<Components> = {
     if (isJikanImage(srcStr)) {
       return <AnimeCard src={srcStr} alt={alt} {...rest} />
     }
-    if (srcStr && KROKI_PATTERN.test(srcStr)) {
+    if (srcStr && DIAGRAM_PATTERN.test(srcStr)) {
       return (
         <figure className="my-3 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3">
           <img src={srcStr} alt={alt || 'Diagram'} loading="lazy" className="max-w-full" {...rest} />

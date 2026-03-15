@@ -69,8 +69,9 @@ Behavior:
 4. If a city is not found in the weather system, suggest nearby supported cities.
 5. When asked to create a diagram, flowchart, or visual plan, you MUST call the render_diagram tool. Do NOT describe the diagram in text — ALWAYS invoke the tool.
    - Pass valid Mermaid syntax as the mermaid_code parameter. Example: "flowchart TD\\n  A[Start] --> B[Plan]\\n  B --> C[Execute]"
-   - The tool returns a clickable_link field. Copy that value EXACTLY as-is into your response so the frontend can render the diagram.
+   - The tool returns a markdown_to_paste field. You MUST copy-paste that value EXACTLY into your response text. It is a markdown link like [View Diagram](https://kroki.io/...) — paste it as-is so the user can click it.
    - NEVER say "I cannot draw" or describe a flowchart in words. You have the render_diagram tool — USE IT.
+   - NEVER try to construct a Kroki URL yourself. ONLY use the URL returned by the tool.
 6. When you encounter a failure or need to make a recovery decision, explain your reasoning in your thinking process.
 """
 
