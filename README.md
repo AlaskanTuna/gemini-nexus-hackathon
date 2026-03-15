@@ -160,35 +160,53 @@ to block unsafe or off-scope behavior.
 
 </details>
 
-## Local Development
+## Quick Start
 
-<details>
-<summary>Prerequisites and local setup</summary>
-
-### Prerequisites
-
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/)
-- Node.js 20+
-- [pnpm](https://pnpm.io/)
-- a root `.env` file copied from `.env.example`
-
-### Run locally
-
-Start three services in parallel.
+### One-command deploy to your own GCP project
 
 ```bash
-# Terminal 1 - MCP server
+git clone https://github.com/your-org/gemini-nexus-hackathon.git
+cd gemini-nexus-hackathon
+./init.sh
+```
+
+The script will:
+1. Check prerequisites (`gcloud`, `uv`, `pnpm`)
+2. Create `.env` from `.env.example` (prompts for your GCP project ID)
+3. Install Python and frontend dependencies
+4. Authenticate with GCP and enable required APIs
+5. Build 3 Docker images via Cloud Build
+6. Deploy 3 Cloud Run services (MCP -> Agents -> Frontend)
+7. Print 3 live URLs
+
+### Local development
+
+```bash
+./init.sh --local
+```
+
+This installs dependencies, creates config files, and prints instructions for starting the 3 services locally.
+
+<details>
+<summary>Manual local setup (if you prefer not to use init.sh)</summary>
+
+Prerequisites: Python 3.12+, [uv](https://docs.astral.sh/uv/), Node.js 20+, [pnpm](https://pnpm.io/)
+
+```bash
+# Setup
+cp .env.example .env
+# Edit .env and set GOOGLE_CLOUD_PROJECT
 uv sync
+cd app && pnpm install && cd ..
+
+# Terminal 1 - MCP server
 uv run python tools/server.py
 
 # Terminal 2 - A2A agents
 uv run python agents/root_agent/agent.py
 
 # Terminal 3 - frontend
-cd app
-pnpm install
-pnpm dev
+cd app && pnpm dev
 ```
 
 Open `http://localhost:3000` and start chatting.
@@ -199,109 +217,70 @@ Open `http://localhost:3000` and start chatting.
 
 AniKrewe is deployed as three Cloud Run services in `us-central1`.
 
-<details>
-<summary>Live URLs and deployment commands</summary>
-
 | Service | URL |
 | ------- | --- |
 | Frontend | https://anikrewe-app-438706399773.us-central1.run.app |
 | A2A Agents | https://anikrewe-agents-438706399773.us-central1.run.app |
 | MCP Server | https://anikrewe-tools-bjqqkq5rpa-uc.a.run.app |
 
-### Deployment order
+<details>
+<summary>Manual deployment commands (if you prefer not to use init.sh)</summary>
 
-1. MCP Server
-2. A2A Agents with `MCP_SERVER_URL`
-3. Frontend with `A2A_SERVER_URL`
+### Deploy order
 
-### Build images
+Services must be deployed in order because each depends on the previous service's URL.
 
 ```bash
+# 1. Build all images
 gcloud builds submit --config deploy/cloudbuild-tools.yaml --region us-central1
 gcloud builds submit --config deploy/cloudbuild-agents.yaml --region us-central1
 gcloud builds submit --config deploy/cloudbuild-app.yaml --region us-central1
-```
 
-### Deploy MCP Server
-
-```bash
+# 2. Deploy MCP server
 gcloud run deploy anikrewe-tools \
-  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-tools \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars "GOOGLE_CLOUD_PROJECT=gemini-nexus-hackathon"
-```
+  --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/anikrewe-tools \
+  --region us-central1 --port 8080 --allow-unauthenticated --memory 512Mi
 
-### Deploy A2A Agents
+# 3. Get MCP URL, then deploy agents
+MCP_URL=$(gcloud run services describe anikrewe-tools --region us-central1 --format='value(status.url)')
 
-```bash
 gcloud run deploy anikrewe-agents \
-  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-agents \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --memory 1Gi \
-  --timeout 300 \
-  --set-env-vars "\
-GOOGLE_GENAI_USE_VERTEXAI=TRUE,\
-GOOGLE_CLOUD_PROJECT=gemini-nexus-hackathon,\
-GOOGLE_CLOUD_LOCATION=asia-southeast1,\
-MCP_SERVER_URL=<TOOLS_URL>/mcp,\
-A2A_PORT=10000,\
-ADK_INCLUDE_THOUGHTS=true,\
-ENABLE_MODEL_ARMOR=true,\
-MODEL_ARMOR_TEMPLATE_ID=anikrewe-safety,\
-MODEL_ARMOR_LOCATION=us-central1"
-```
+  --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/anikrewe-agents \
+  --region us-central1 --port 10000 --allow-unauthenticated --memory 1Gi --timeout 300 \
+  --set-env-vars "MCP_SERVER_URL=${MCP_URL}/mcp,GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=asia-southeast1,ADK_INCLUDE_THOUGHTS=true,ENABLE_MODEL_ARMOR=false,A2A_PORT=10000"
 
-### Deploy Frontend
+# 4. Get A2A URL, then deploy frontend
+A2A_URL=$(gcloud run services describe anikrewe-agents --region us-central1 --format='value(status.url)')
 
-```bash
 gcloud run deploy anikrewe-app \
-  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-app \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars "A2A_SERVER_URL=<AGENTS_URL>"
+  --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/anikrewe-app \
+  --region us-central1 --port 3000 --allow-unauthenticated --memory 512Mi \
+  --set-env-vars "A2A_SERVER_URL=${A2A_URL}"
 ```
 
 ### Redeploy after code changes
 
-If code changed, rebuild the image first and then redeploy the service. For code-only changes, you usually do not need to repeat the env var flags because Cloud Run keeps the existing service configuration.
-
-#### Frontend
+Rebuild the image, then redeploy. Env vars are preserved from the previous deploy.
 
 ```bash
+# Frontend only
 gcloud builds submit --config deploy/cloudbuild-app.yaml --region us-central1
-
 gcloud run deploy anikrewe-app \
-  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-app \
+  --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/anikrewe-app \
   --region us-central1
-```
 
-#### A2A Agents
-
-```bash
+# Agents only
 gcloud builds submit --config deploy/cloudbuild-agents.yaml --region us-central1
-
 gcloud run deploy anikrewe-agents \
-  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-agents \
+  --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/anikrewe-agents \
   --region us-central1
-```
 
-#### MCP Tools
-
-```bash
+# MCP tools only
 gcloud builds submit --config deploy/cloudbuild-tools.yaml --region us-central1
-
 gcloud run deploy anikrewe-tools \
-  --image us-central1-docker.pkg.dev/gemini-nexus-hackathon/cloud-run-source-deploy/anikrewe-tools \
+  --image us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/anikrewe-tools \
   --region us-central1
 ```
-
-Redeploy order for cross-service changes:
-
-1. `anikrewe-tools`
-2. `anikrewe-agents`
-3. `anikrewe-app`
 
 </details>
 
