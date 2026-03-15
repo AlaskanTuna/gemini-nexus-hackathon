@@ -123,6 +123,7 @@ deploy_cloud() {
     cloudbuild.googleapis.com \
     artifactregistry.googleapis.com \
     aiplatform.googleapis.com \
+    modelarmor.googleapis.com \
     --quiet
   ok "APIs enabled"
 
